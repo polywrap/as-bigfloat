@@ -1,5 +1,5 @@
 import {BigFloat} from "../BigFloat";
-import {BigInt} from "../BigInt";
+import { BigInt } from "as-bigint";
 
 
 describe("BigFloat reads and writes strings", () => {

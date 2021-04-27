@@ -1,4 +1,4 @@
-import { BigInt } from "./BigInt";
+import { BigInt } from "as-bigint";
 
 // multiple precision float
 export class BigFloat {

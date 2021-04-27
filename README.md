@@ -1,2 +1,2 @@
-# BigInt
-BigInt is an AssemblyScript class for math with arbitrarily large integers
+# BigFloat
+BigFloat is an AssemblyScript class for math with arbitrary-precision decimal numbers

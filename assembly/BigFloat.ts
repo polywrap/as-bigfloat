@@ -48,38 +48,105 @@ export class BigFloat {
 
   // OUTPUT ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  toString(precision: i32 = 18): string {
+  toString(precision: i32 = 18, fixed: boolean = false): string {
+    // trivial case
     if (this.mantissa.isZero()) {
+      if (fixed) {
+        return "0.".padEnd(precision + 2, "0");
+      }
       return "0";
     }
+    // prep for other cases
     let m: string = this.mantissa.toString();
     let result: string = "";
     if (this.isNegative) {
       result += "-";
       m = m.substring(1);
     }
+    // positive integer
     if (this.e > 0) {
       result = result.padEnd(m.length + this.e, "0");
       if (precision > 0) {
-        result += ".0"
+        result += fixed ? ".".padEnd(precision + 1, "0") : ".0";
       }
+      // number < 1
     } else if (this.e + m.length <= 0) {
-      if (precision == 0 || this.e + m.length <= -1 * precision) {
+      const isZeroFromLowPrecision: boolean = this.e + m.length <= -1 * precision;
+      if (precision == 0 || !fixed && isZeroFromLowPrecision) {
         return "0"
       }
+      if (fixed && isZeroFromLowPrecision) {
+        return "0.".padEnd(precision + 2, "0");
+      }
       result += "0."
+      m = BigFloat.trimTrailingZeros(m);
       m = m.padStart(-1 * this.e, "0");
       m = m.substr(0, precision);
+      if (fixed && m.length < precision) {
+        m = m.padEnd(precision, "0");
+      }
       result += m;
+      // other decimal numbers
     } else {
       result += m.substring(0, m.length + this.e);
       if (precision > 0) {
-        const postDecimal: string = m.substr(m.length + this.e, precision);
+        let postDecimal: string = m.substr(m.length + this.e, precision);
+        postDecimal = fixed ? postDecimal.padEnd(precision, "0") : BigFloat.trimTrailingZeros(postDecimal);
         result += ".";
         result += postDecimal.length > 0 ? postDecimal : "0";
       }
     }
     return result;
+  }
+
+  toSignificant(significantDigits: i32 = 18, rounding: i32 = Rounding.ROUND_HALF_UP): string {
+    let resultFloat: BigFloat;
+    // round down is default toString behavior
+    if (rounding == Rounding.ROUND_DOWN) {
+      resultFloat = this;
+    } else {
+      const extraDecimalStr: string = this.toString(significantDigits + 1, true);
+      const lastDigit: i32 = I32.parseInt(extraDecimalStr.charAt(extraDecimalStr.length - 1));
+      // check if we will round down
+      if (rounding == Rounding.ROUND_HALF_UP && lastDigit < 5 || lastDigit == 0) {
+        resultFloat = this;
+      } else {
+        // we will round up
+        resultFloat = BigFloat.fromString(extraDecimalStr);
+        const ten: BigInt = BigInt.fromUInt16(<u16>10);
+        if (this.isNegative) {
+          resultFloat.mantissa = resultFloat.mantissa.sub(ten)
+        } else {
+          resultFloat.mantissa = resultFloat.mantissa.add(ten);
+        }
+      }
+    }
+    return resultFloat.toString(significantDigits, true);
+  }
+
+  toFixed(decimalPlaces: i32 = 18, rounding: i32 = Rounding.ROUND_HALF_UP): string {
+    let resultFloat: BigFloat;
+    // round down is default toString behavior
+    if (rounding == Rounding.ROUND_DOWN) {
+      resultFloat = this;
+    } else {
+      const extraDecimalStr: string = this.toString(decimalPlaces + 1, true);
+      const lastDigit: i32 = I32.parseInt(extraDecimalStr.charAt(extraDecimalStr.length - 1));
+      // check if we will round down
+      if (rounding == Rounding.ROUND_HALF_UP && lastDigit < 5 || lastDigit == 0) {
+        resultFloat = this;
+      } else {
+        // we will round up
+        resultFloat = BigFloat.fromString(extraDecimalStr);
+        const ten: BigInt = BigInt.fromUInt16(<u16>10);
+        if (this.isNegative) {
+          resultFloat.mantissa = resultFloat.mantissa.sub(ten)
+        } else {
+          resultFloat.mantissa = resultFloat.mantissa.add(ten);
+        }
+      }
+    }
+    return resultFloat.toString(decimalPlaces, true);
   }
 
   // MAINTENANCE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,4 +244,11 @@ export class BigFloat {
     return new BigFloat(this.mantissa.copy(), this.e);
   }
 
+}
+
+export class Rounding {
+  static ROUND_DOWN: i32 = 0;
+  static ROUND_HALF_UP: i32 = 1;
+  static ROUND_UP: i32 = 2;
+  constructor() { }
 }

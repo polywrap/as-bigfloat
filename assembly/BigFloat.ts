@@ -46,6 +46,28 @@ export class BigFloat {
     return new BigFloat(mantissa, exponent);
   }
 
+  // MAINTENANCE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private static trimLeadingZeros(str: string): string {
+    let i: i32 = 0;
+    for (; i <= str.length; i++) {
+      if (str.charAt(i) != "0") {
+        break;
+      }
+    }
+    return str.substring(i);
+  }
+
+  private static trimTrailingZeros(str: string): string {
+    let i: i32 = str.length - 1;
+    for (; i >= 0; i--) {
+      if (str.charAt(i) != "0") {
+        break;
+      }
+    }
+    return str.substring(0, i + 1);
+  }
+
   // OUTPUT ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   toString(precision: i32 = 18, fixed: boolean = false): string {
@@ -150,26 +172,107 @@ export class BigFloat {
     }
   }
 
-  // MAINTENANCE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////////
-
-  private static trimLeadingZeros(str: string): string {
-    let i: i32 = 0;
-    for (; i <= str.length; i++) {
-      if (str.charAt(i) != "0") {
-        break;
-      }
-    }
-    return str.substring(i);
+  floor(): BigInt {
+    return BigInt.fromString(this.toString(0));
   }
 
-  private static trimTrailingZeros(str: string): string {
-    let i: i32 = str.length - 1;
-    for (; i >= 0; i--) {
-      if (str.charAt(i) != "0") {
-        break;
+  ceil(): BigInt {
+    return BigInt.fromString(this.toFixed(0, Rounding.ROUND_UP));
+  }
+
+  // COMPARISON OPERATORS //////////////////////////////////////////////////////////////////////////////////////////////
+  
+  @operator("==")
+  eq(other: BigFloat): boolean {
+    return this.compareTo(other) == 0;
+  }
+
+  @operator("!=")
+  ne(other: BigFloat): boolean {
+    return !this.eq(other);
+  }
+
+  @operator("<")
+  lt(other: BigFloat): boolean {
+    return this.compareTo(other) < 0;
+  }
+
+  @operator("<=")
+  lte(other: BigFloat): boolean {
+    return this.compareTo(other) <= 0;
+  }
+
+  @operator(">")
+  gt(other: BigFloat): boolean {
+    return this.compareTo(other) > 0;
+  }
+
+  @operator(">=")
+  gte(other: BigFloat): boolean {
+    return this.compareTo(other) >= 0;
+  }
+
+  compareTo(other: BigFloat): i32 {
+    // opposite signs
+    if (this.isNegative && !other.isNegative) {
+      return -1;
+    } else if (!this.isNegative && other.isNegative) {
+      return 1;
+    } else if (this.isNegative) {
+      return other.magCompareTo(this);
+    } else {
+      return this.magCompareTo(other);
+    }
+  }
+
+  magCompareTo(other: BigFloat): i32 {
+    const thisString: string = this.toString(1000);
+    const thisDecimalIndex: i32 = thisString.indexOf(".");
+    const otherString: string = other.toString(1000);
+    const otherDecimalIndex: i32 = otherString.indexOf(".");
+    // compare whole number parts
+    let thisInt: BigInt;
+    let otherInt: BigInt;
+    if (thisDecimalIndex == -1) {
+      thisInt = BigInt.fromString(thisString);
+    } else {
+      thisInt = BigInt.fromString(thisString.substring(0, thisDecimalIndex));
+    }
+    if (otherDecimalIndex == -1) {
+      otherInt = BigInt.fromString(otherString);
+    } else {
+      otherInt = BigInt.fromString(otherString.substring(0, otherDecimalIndex));
+    }
+    const intCompare = thisInt.magCompareTo(otherInt);
+    if (intCompare != 0) {
+      return intCompare
+    }
+    // compare decimal parts
+    let thisDecimal: string;
+    let otherDecimal: string;
+    if (thisDecimalIndex == -1) {
+      thisDecimal = "0";
+    } else {
+      thisDecimal = thisString.substring(thisString.indexOf(".") + 1);
+    }
+    if (otherDecimalIndex == -1) {
+      otherDecimal = "0"
+    } else {
+      otherDecimal = otherString.substring(otherString.indexOf(".") + 1);
+    }
+    const minLen = thisDecimal.length < otherDecimal.length ? thisDecimal.length : otherDecimal.length;
+    for (let i = 0; i < minLen; i++) {
+      const thisDigit = thisDecimal.charAt(i);
+      const otherDigit = otherDecimal.charAt(i);
+      if (thisDigit != otherDigit) {
+        const thisDigitInt = I32.parseInt(thisDigit);
+        const otherDigitInt = I32.parseInt(otherDigit);
+        if (thisDigitInt > otherDigitInt) return 1;
+        if (thisDigitInt < otherDigitInt) return -1;
+        return 0;
       }
     }
-    return str.substring(0, i + 1);
+    return thisDecimal.length - otherDecimal.length;
   }
 
   // CORE OPERATIONS ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,6 +288,7 @@ export class BigFloat {
 
   // ARITHMETIC ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  @operator("+")
   add(other: BigFloat): BigFloat {
     let left: BigInt = this.mantissa;
     let right: BigInt = other.mantissa;
@@ -199,6 +303,7 @@ export class BigFloat {
     return new BigFloat(left.add(right), exponent);
   }
 
+  @operator("-")
   sub(other: BigFloat): BigFloat {
     let left: BigInt = this.mantissa;
     let right: BigInt = other.mantissa;
@@ -213,12 +318,14 @@ export class BigFloat {
     return new BigFloat(left.sub(right), exponent);
   }
 
+  @operator("*")
   mul(other: BigFloat): BigFloat {
     const mantissa: BigInt = this.mantissa.mul(other.mantissa);
     const exponent: i32 = this.e + other.e;
     return new BigFloat(mantissa, exponent);
   }
 
+  @operator("/")
   div(other: BigFloat, minPrecision: i32 = 32): BigFloat {
     let dividend: BigInt = this.mantissa;
     let divisor: BigInt = other.mantissa;
@@ -243,6 +350,48 @@ export class BigFloat {
 
   copy(): BigFloat {
     return new BigFloat(this.mantissa.copy(), this.e);
+  }
+
+  // SYNTACTIC SUGAR ///////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  static eq(left: BigFloat, right: BigFloat): boolean {
+    return left.eq(right);
+  }
+  
+  static ne(left: BigFloat, right: BigFloat): boolean {
+    return left.ne(right);
+  }
+  
+  static lt(left: BigFloat, right: BigFloat): boolean {
+    return left.lt(right);
+  }
+  
+  static lte(left: BigFloat, right: BigFloat): boolean {
+    return left.lte(right);
+  }
+  
+  static gt(left: BigFloat, right: BigFloat): boolean {
+    return left.gt(right);
+  }
+  
+  static gte(left: BigFloat, right: BigFloat): boolean {
+    return left.gte(right);
+  }
+  
+  static add(left: BigFloat, right: BigFloat): BigFloat {
+    return left.add(right);
+  }
+  
+  static sub(left: BigFloat, right: BigFloat): BigFloat {
+    return left.sub(right);
+  }
+  
+  static mul(left: BigFloat, right: BigFloat): BigFloat {
+    return left.mul(right);
+  }
+  
+  static div(left: BigFloat, right: BigFloat): BigFloat {
+    return left.div(right);
   }
 
 }

@@ -69,7 +69,7 @@ export class BigFloat {
       if (precision > 0) {
         result += fixed ? ".".padEnd(precision + 1, "0") : ".0";
       }
-      // number < 1
+    // number < 1
     } else if (this.e + m.length <= 0) {
       const isZeroFromLowPrecision: boolean = this.e + m.length <= -1 * precision;
       if (precision == 0 || !fixed && isZeroFromLowPrecision) {
@@ -86,7 +86,7 @@ export class BigFloat {
         m = m.padEnd(precision, "0");
       }
       result += m;
-      // other decimal numbers
+    // other decimal numbers
     } else {
       result += m.substring(0, m.length + this.e);
       if (precision > 0) {
@@ -97,31 +97,6 @@ export class BigFloat {
       }
     }
     return result;
-  }
-
-  toSignificant(significantDigits: i32 = 18, rounding: i32 = Rounding.ROUND_HALF_UP): string {
-    let resultFloat: BigFloat;
-    // round down is default toString behavior
-    if (rounding == Rounding.ROUND_DOWN) {
-      resultFloat = this;
-    } else {
-      const extraDecimalStr: string = this.toString(significantDigits + 1, true);
-      const lastDigit: i32 = I32.parseInt(extraDecimalStr.charAt(extraDecimalStr.length - 1));
-      // check if we will round down
-      if (rounding == Rounding.ROUND_HALF_UP && lastDigit < 5 || lastDigit == 0) {
-        resultFloat = this;
-      } else {
-        // we will round up
-        resultFloat = BigFloat.fromString(extraDecimalStr);
-        const ten: BigInt = BigInt.fromUInt16(<u16>10);
-        if (this.isNegative) {
-          resultFloat.mantissa = resultFloat.mantissa.sub(ten)
-        } else {
-          resultFloat.mantissa = resultFloat.mantissa.add(ten);
-        }
-      }
-    }
-    return resultFloat.toString(significantDigits, true);
   }
 
   toFixed(decimalPlaces: i32 = 18, rounding: i32 = Rounding.ROUND_HALF_UP): string {
@@ -135,8 +110,8 @@ export class BigFloat {
       // check if we will round down
       if (rounding == Rounding.ROUND_HALF_UP && lastDigit < 5 || lastDigit == 0) {
         resultFloat = this;
+      // we will round up
       } else {
-        // we will round up
         resultFloat = BigFloat.fromString(extraDecimalStr);
         const ten: BigInt = BigInt.fromUInt16(<u16>10);
         if (this.isNegative) {
@@ -147,6 +122,32 @@ export class BigFloat {
       }
     }
     return resultFloat.toString(decimalPlaces, true);
+  }
+
+  toSignificant(significantDigits: i32 = 18, rounding: i32 = Rounding.ROUND_HALF_UP): string {
+    if (significantDigits == 0) {
+      return "0";
+    }
+    const floatString: string = this.toString(significantDigits + 1);
+    const decimalIndex: i32 = floatString.indexOf(".");
+    const isNegative: bool = this.isNegative ? 1 : 0;
+    let isLessThanOne: bool;
+    if (isNegative) {
+      isLessThanOne = decimalIndex == 2 && floatString.charAt(1) == "0" ? 1 : 0;
+    } else {
+      isLessThanOne = decimalIndex == 1 && floatString.charAt(0) == "0" ? 1 : 0;
+    }
+    // result includes decimal part or uses it for rounding
+    if (significantDigits >= decimalIndex - isNegative - isLessThanOne) {
+      const decimalPlaces: i32 = significantDigits - (decimalIndex - isNegative - isLessThanOne);
+      return this.toFixed(decimalPlaces, rounding);
+    // result includes only whole numbers and doesn't use decimal part
+    } else if (rounding == Rounding.ROUND_DOWN) {
+        return floatString.substring(0, significantDigits).padEnd(decimalIndex, "0");
+    } else {
+      let extraDigitStr: string = floatString.substring(0, significantDigits) + "." + floatString.charAt(significantDigits);
+      return BigFloat.fromString(extraDigitStr).toFixed(0, rounding).padEnd(decimalIndex, "0");
+    }
   }
 
   // MAINTENANCE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////////

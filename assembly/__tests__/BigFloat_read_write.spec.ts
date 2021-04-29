@@ -119,6 +119,10 @@ describe("Formatted output", () => {
     expect(bigFloatNeg.toFixed(8, Rounding.ROUND_DOWN)).toStrictEqual("-0.00252352");
     expect(bigFloatNeg.toFixed(2, Rounding.ROUND_DOWN)).toStrictEqual("0.00");
     expect(bigFloatNeg.toFixed(0, Rounding.ROUND_DOWN)).toStrictEqual("0");
+
+    const strNeg2: string = "-12.002523527";
+    const bigFloatNeg2: BigFloat = BigFloat.fromString(strNeg2);
+    expect(bigFloatNeg2.toFixed(3, Rounding.ROUND_DOWN)).toStrictEqual("-12.002");
   });
 
   it("Prints output with fixed precision rounded up", () => {
@@ -138,6 +142,10 @@ describe("Formatted output", () => {
     expect(bigFloatNeg.toFixed(8, Rounding.ROUND_UP)).toStrictEqual("-0.00252353");
     expect(bigFloatNeg.toFixed(2, Rounding.ROUND_UP)).toStrictEqual("-0.01");
     expect(bigFloatNeg.toFixed(0, Rounding.ROUND_UP)).toStrictEqual("0");
+
+    const strNeg2: string = "-12.002523527";
+    const bigFloatNeg2: BigFloat = BigFloat.fromString(strNeg2);
+    expect(bigFloatNeg2.toFixed(3, Rounding.ROUND_UP)).toStrictEqual("-12.003");
   });
 
   it("Prints output with fixed precision rounded half up", () => {
@@ -157,14 +165,18 @@ describe("Formatted output", () => {
     expect(bigFloatNeg.toFixed(8, Rounding.ROUND_HALF_UP)).toStrictEqual("-0.00252353");
     expect(bigFloatNeg.toFixed(2, Rounding.ROUND_HALF_UP)).toStrictEqual("0.00");
     expect(bigFloatNeg.toFixed(0, Rounding.ROUND_HALF_UP)).toStrictEqual("0");
+
+    const strNeg2: string = "-12.002523527";
+    const bigFloatNeg2: BigFloat = BigFloat.fromString(strNeg2);
+    expect(bigFloatNeg2.toFixed(3, Rounding.ROUND_HALF_UP)).toStrictEqual("-12.003");
   });
 
   it("Prints output with requested significant digits, rounded down", () => {
     const str: string = "32523523.2523527";
     const bigFloat: BigFloat = BigFloat.fromString(str);
     expect(bigFloat.toSignificant(18, Rounding.ROUND_DOWN)).toStrictEqual("32523523.2523527000");
-    expect(bigFloat.toSignificant(5, Rounding.ROUND_DOWN)).toStrictEqual("32523000.0");
-    expect(bigFloat.toSignificant(8, Rounding.ROUND_DOWN)).toStrictEqual("32523523.0");
+    expect(bigFloat.toSignificant(5, Rounding.ROUND_DOWN)).toStrictEqual("32523000");
+    expect(bigFloat.toSignificant(8, Rounding.ROUND_DOWN)).toStrictEqual("32523523");
     expect(bigFloat.toSignificant(9, Rounding.ROUND_DOWN)).toStrictEqual("32523523.2");
     expect(bigFloat.toSignificant(10, Rounding.ROUND_DOWN)).toStrictEqual("32523523.25");
     expect(bigFloat.toSignificant(0, Rounding.ROUND_DOWN)).toStrictEqual("0");
@@ -177,14 +189,18 @@ describe("Formatted output", () => {
     expect(bigFloatNeg.toSignificant(8, Rounding.ROUND_DOWN)).toStrictEqual("-0.00252352");
     expect(bigFloatNeg.toSignificant(2, Rounding.ROUND_DOWN)).toStrictEqual("0.00");
     expect(bigFloatNeg.toSignificant(0, Rounding.ROUND_DOWN)).toStrictEqual("0");
+
+    const strNeg2: string = "-12.002523527";
+    const bigFloatNeg2: BigFloat = BigFloat.fromString(strNeg2);
+    expect(bigFloatNeg2.toSignificant(5, Rounding.ROUND_DOWN)).toStrictEqual("-12.002");
   });
 
   it("Prints output with requested significant digits, rounded up", () => {
     const str: string = "32523523.2523527";
     const bigFloat: BigFloat = BigFloat.fromString(str);
     expect(bigFloat.toSignificant(18, Rounding.ROUND_UP)).toStrictEqual("32523523.2523527000");
-    expect(bigFloat.toSignificant(5, Rounding.ROUND_UP)).toStrictEqual("32524000.0");
-    expect(bigFloat.toSignificant(8, Rounding.ROUND_UP)).toStrictEqual("32523524.0");
+    expect(bigFloat.toSignificant(5, Rounding.ROUND_UP)).toStrictEqual("32524000");
+    expect(bigFloat.toSignificant(8, Rounding.ROUND_UP)).toStrictEqual("32523524");
     expect(bigFloat.toSignificant(9, Rounding.ROUND_UP)).toStrictEqual("32523523.3");
     expect(bigFloat.toSignificant(10, Rounding.ROUND_UP)).toStrictEqual("32523523.26");
     expect(bigFloat.toSignificant(0, Rounding.ROUND_UP)).toStrictEqual("0");
@@ -197,14 +213,18 @@ describe("Formatted output", () => {
     expect(bigFloatNeg.toSignificant(8, Rounding.ROUND_UP)).toStrictEqual("-0.00252353");
     expect(bigFloatNeg.toSignificant(2, Rounding.ROUND_UP)).toStrictEqual("-0.01");
     expect(bigFloatNeg.toSignificant(0, Rounding.ROUND_UP)).toStrictEqual("0");
+
+    const strNeg2: string = "-12.002523527";
+    const bigFloatNeg2: BigFloat = BigFloat.fromString(strNeg2);
+    expect(bigFloatNeg2.toSignificant(5, Rounding.ROUND_UP)).toStrictEqual("-12.003");
   });
 
   it("Prints output with requested significant digits, rounded half up", () => {
     const str: string = "32523523.2523527";
     const bigFloat: BigFloat = BigFloat.fromString(str);
     expect(bigFloat.toSignificant(18, Rounding.ROUND_HALF_UP)).toStrictEqual("32523523.2523527000");
-    expect(bigFloat.toSignificant(5, Rounding.ROUND_HALF_UP)).toStrictEqual("32524000.0");
-    expect(bigFloat.toSignificant(8, Rounding.ROUND_HALF_UP)).toStrictEqual("32523523.0");
+    expect(bigFloat.toSignificant(5, Rounding.ROUND_HALF_UP)).toStrictEqual("32524000");
+    expect(bigFloat.toSignificant(8, Rounding.ROUND_HALF_UP)).toStrictEqual("32523523");
     expect(bigFloat.toSignificant(9, Rounding.ROUND_HALF_UP)).toStrictEqual("32523523.3");
     expect(bigFloat.toSignificant(10, Rounding.ROUND_HALF_UP)).toStrictEqual("32523523.25");
     expect(bigFloat.toSignificant(0, Rounding.ROUND_HALF_UP)).toStrictEqual("0");
@@ -217,6 +237,10 @@ describe("Formatted output", () => {
     expect(bigFloatNeg.toSignificant(8, Rounding.ROUND_HALF_UP)).toStrictEqual("-0.00252353");
     expect(bigFloatNeg.toSignificant(2, Rounding.ROUND_HALF_UP)).toStrictEqual("0.00");
     expect(bigFloatNeg.toSignificant(0, Rounding.ROUND_HALF_UP)).toStrictEqual("0");
+
+    const strNeg2: string = "-12.002523527";
+    const bigFloatNeg2: BigFloat = BigFloat.fromString(strNeg2);
+    expect(bigFloatNeg2.toSignificant(5, Rounding.ROUND_HALF_UP)).toStrictEqual("-12.003");
   });
 
 });

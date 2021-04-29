@@ -302,6 +302,12 @@ describe("Construction from fractions", () => {
     denominator = BigInt.fromString("-899732432868687887");
     bigFloat = BigFloat.fromFraction(numerator, denominator);
     expect(bigFloat.toString()).toStrictEqual("0");
-  });
 
+
+
+    numerator = BigInt.fromString("100");
+    denominator = BigInt.fromString("200");
+    bigFloat = BigFloat.fromFraction(numerator, denominator);
+    expect(bigFloat.toString()).toStrictEqual("0.5");
+  });
 });

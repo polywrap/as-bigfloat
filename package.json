@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Web3-API/as-bigfloat.git"
   },
-  "version": "0.0.3",
+  "version": "0.0.4",
   "types": "assembly/index.ts",
   "releaseFiles": [
     "assembly/",

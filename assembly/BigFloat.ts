@@ -4,7 +4,7 @@ import { BigInt } from "as-bigint";
 export class BigFloat {
 
   // a float takes the form -> m * 10^e
-  public mantissa: BigInt;
+  private mantissa: BigInt;
   private e: i32;
 
   // CONSTRUCTORS //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +68,13 @@ export class BigFloat {
     return str.substring(0, i + 1);
   }
 
+  private normalize(): BigFloat {
+    const mantissaStr: string = this.mantissa.toString();
+    const trimmedMantissa: string = BigFloat.trimTrailingZeros(mantissaStr);
+    const exponent: i32 = this.e + (mantissaStr.length - trimmedMantissa.length);
+    return new BigFloat(BigInt.fromString(trimmedMantissa), exponent);
+  }
+
   // OUTPUT ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   toString(precision: i32 = 18, fixed: boolean = false): string {
@@ -101,11 +108,12 @@ export class BigFloat {
         return "0.".padEnd(precision + 2, "0");
       }
       result += "0."
-      m = BigFloat.trimTrailingZeros(m);
       m = m.padStart(-1 * this.e, "0");
       m = m.substr(0, precision);
-      if (fixed && m.length < precision) {
+      if (fixed) {
         m = m.padEnd(precision, "0");
+      } else {
+        m = BigFloat.trimTrailingZeros(m);
       }
       result += m;
     // other decimal numbers
@@ -338,7 +346,8 @@ export class BigFloat {
     // divide
     const mantissa: BigInt = dividend.div(divisor);
     const exponent: i32 = this.e - other.e - padding;
-    return new BigFloat(mantissa, exponent);
+    const res: BigFloat = new BigFloat(mantissa, exponent);
+    return res.mantissa.countBits() > 384 ? res.normalize() : res;
   }
 
 
